@@ -1,0 +1,114 @@
+# Notification service API
+#
+# @direct   -> the service itself, normally http://localhost:8082
+#              (inside compose: http://notification:8082)
+# @viaNginx -> through the frontend nginx proxy, http://localhost:8090
+#
+# The browser should only use @viaNginx.
+# The backend calls @direct from inside the compose network.
+#
+# SSE is easier to watch with curl because most editors buffer the response:
+#
+#   curl -N http://localhost:8090/api/notification/stream
+#
+# Note the trailing slash on the collection URLs. /api/notification is the
+# servlet context root, and Tomcat answers that with a 302 to
+# /api/notification/ — redirects turn a POST into a GET, so writes silently
+# do nothing. Always use {{direct}}/ and {{viaNginx}}/ for list/create.
+
+@direct = http://localhost:8082/api/notification
+@viaNginx = http://localhost:8090/api/notification
+
+### ------------------------------------------------------------------
+### Health
+### ------------------------------------------------------------------
+
+### Health check (direct, used by the container healthcheck)
+GET {{direct}}/health
+
+### Health check through nginx
+GET {{viaNginx}}/health
+
+### ------------------------------------------------------------------
+### History
+### ------------------------------------------------------------------
+
+### List notifications, newest first (through nginx)
+GET {{viaNginx}}/
+
+### List notifications, newest first (direct)
+GET {{direct}}/
+
+### ------------------------------------------------------------------
+### Create notifications
+### ------------------------------------------------------------------
+
+### Order created — this is the payload the backend sends
+POST {{direct}}/
+Content-Type: application/json
+
+{
+  "message": "Order ORD-1002 was created for Alice (2 x 27-inch Monitor)",
+  "entityId": 42,
+  "notificationType": "ORDER_CREATED",
+  "notificationLevel": "SUCCESS"
+}
+
+### Order shipped
+POST {{direct}}/
+Content-Type: application/json
+
+{
+  "message": "Order ORD-1002 is now SHIPPED",
+  "entityId": 42,
+  "notificationType": "ORDER_SHIPPED",
+  "notificationLevel": "INFO"
+}
+
+### Generic notification — useful for testing from the browser or curl
+POST {{viaNginx}}/
+Content-Type: application/json
+
+{
+  "message": "Maintenance starts in 10 minutes",
+  "entityId": 0,
+  "notificationType": "GENERAL",
+  "notificationLevel": "WARNING"
+}
+
+### Invalid request — expected 400 because message is blank
+POST {{direct}}/
+Content-Type: application/json
+
+{
+  "message": "   ",
+  "entityId": 42,
+  "notificationType": "GENERAL",
+  "notificationLevel": "INFO"
+}
+
+### ------------------------------------------------------------------
+### Delete
+### ------------------------------------------------------------------
+
+### Delete a notification by id — expected 204 No Content
+DELETE {{viaNginx}}/1
+
+### Delete a missing id — expected 400 with "No resource found with id"
+DELETE {{direct}}/999999
+
+### ------------------------------------------------------------------
+### SSE stream
+### ------------------------------------------------------------------
+
+### Live stream (direct)
+# Use curl -N in a terminal:
+#   curl -N http://localhost:8082/api/notification/stream
+GET {{direct}}/stream
+Accept: text/event-stream
+
+### Live stream (through nginx)
+# Use curl -N in a terminal:
+#   curl -N http://localhost:8090/api/notification/stream
+GET {{viaNginx}}/stream
+Accept: text/event-stream

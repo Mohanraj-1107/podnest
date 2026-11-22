@@ -1,0 +1,15 @@
+# Build context for the notification-service image (Podman reads .containerignore)
+.git
+.gitignore
+.idea
+.vscode
+target
+logs
+*.log
+HELP.md
+api.http
+dep-tree.txt
+Containerfile
+mvnw
+mvnw.cmd
+.mvn
