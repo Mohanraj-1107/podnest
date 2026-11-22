@@ -1,0 +1,105 @@
+services:
+  mysql:
+    image: docker.io/library/mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DEMO_DB_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${DEMO_DB_NAME:-demo_db}
+      MYSQL_USER: ${DEMO_DB_USER:-demo}
+      MYSQL_PASSWORD: ${DEMO_DB_PASSWORD:-demo123}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -uroot -p"$$MYSQL_ROOT_PASSWORD" --silent
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  redis:
+    image: docker.io/library/redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  notification:
+    build:
+      context: ./services/notification
+      dockerfile: Containerfile
+    image: localhost/crud-demo-notification:latest
+    restart: unless-stopped
+    environment:
+      NOTIFICATION_SERVICE_PORT: 8082
+      MYSQL_URL: "jdbc:mysql://mysql:3306/${DEMO_DB_NAME:-demo_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      MYSQL_USER: ${DEMO_DB_USER:-demo}
+      MYSQL_PASSWORD: ${DEMO_DB_PASSWORD:-demo123}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8082/api/notification/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/crud-demo-backend:latest
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      MYSQL_URL: "jdbc:mysql://mysql:3306/${DEMO_DB_NAME:-demo_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      MYSQL_USER: ${DEMO_DB_USER:-demo}
+      MYSQL_PASSWORD: ${DEMO_DB_PASSWORD:-demo123}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      PRODUCT_CACHE_TTL_SECONDS: ${PRODUCT_CACHE_TTL_SECONDS:-60}
+      NOTIFICATION_SERVICE_URL: http://notification:8082/api/notification/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Containerfile
+    image: localhost/crud-demo-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8090}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+      notification:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  mysql-data:
+  redis-data:
