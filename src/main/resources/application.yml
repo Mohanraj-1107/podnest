@@ -1,0 +1,50 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: spring-mysql-redis-demo
+
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/demo_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:root}
+      timeout: 3s
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 1
+
+app:
+  cache:
+    product-ttl-seconds: ${PRODUCT_CACHE_TTL_SECONDS:60}
+  notification:
+    # Internal compose DNS name; nginx is not involved in service-to-service calls.
+    # Keep the trailing slash: /api/notification alone gets a 302 from Tomcat.
+    url: ${NOTIFICATION_SERVICE_URL:http://localhost:8082/api/notification/}
+    connect-timeout: ${NOTIFICATION_CONNECT_TIMEOUT:1s}
+    read-timeout: ${NOTIFICATION_READ_TIMEOUT:2s}
+
+logging:
+  level:
+    com.example.demo: INFO
