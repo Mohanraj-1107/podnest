@@ -1,0 +1,73 @@
+name: Build Application
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+  pull_request:
+    branches:
+      - main
+      - master
+
+  workflow_dispatch:
+
+jobs:
+  backend-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout backendcode
+        uses: actions/checkout@v4
+
+      - name: setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: build backend
+        working-directory: .
+        run: chmod +x mvnw && ./mvnw clean package
+
+  frontend-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout frontendcode
+        uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependecy: frontend/package-lock.json
+
+      - name: install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: build front end
+        working-directory: ./frontend
+        run: npm run build
+
+  microservice-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout notificationservice
+        uses: actions/checkout@v4
+
+      - name: setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: build notificationservice
+        working-directory: ./services/notification
+        run: chmod +x mvnw && ./mvnw clean package
