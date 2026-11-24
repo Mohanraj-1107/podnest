@@ -29,6 +29,11 @@ jobs:
       - name: checkout backend project
         uses: actions/checkout@v4
 
+
+      - name: Set lowercase image prefix
+        run: | 
+            echo "IMAGE_PREFIX=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: login into GHCR
         uses: docker/login-action@v3
         with:
@@ -45,7 +50,7 @@ jobs:
           context: .
           file: ./Containerfile
           push: true
-          tags: ${{env.REGISTRY}}/${{IMAGE_PREFIX}}/podlab-backend:latest
+          tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/podlab-backend:latest
 
       - name: build and push frontend
         uses: docker/build-push-action@v6
@@ -53,7 +58,7 @@ jobs:
          context: ./frontend
          file: ./frontend/Containerfile
          push: true
-         tags: ${{env.REGISTRY}}/${{IMAGE_PREFIX}}/podlab-frontend:latest
+         tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/podlab-frontend:latest
 
       - name: build and push notification
         uses: docker/build-push-action@v6
@@ -61,4 +66,4 @@ jobs:
           context: ./services/notification
           file: ./services/notification/Containerfile
           push: true
-          tags: ${{env.REGISTRY}}/${{IMAGE_PREFIX}}/podlab-notification-service:latest
+          tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/podlab-notification-service:latest
