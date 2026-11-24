@@ -15,9 +15,10 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_BASE_NAME: podnest
   
 jobs:
-  backend-image-build:
+  build-and-publish-image:
     runs-on: ubuntu-latest
 
     permissions:
@@ -49,7 +50,7 @@ jobs:
           context: .
           file: ./Containerfile
           push: true
-          tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/podlab-backend:latest
+          tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/${{env.IMAGE_BASE_NAME}}-backend:latest
 
       - name: build and push frontend
         uses: docker/build-push-action@v6
@@ -57,7 +58,7 @@ jobs:
          context: ./frontend
          file: ./frontend/Containerfile
          push: true
-         tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/podlab-frontend:latest
+         tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/${{env.IMAGE_BASE_NAME}}-frontend:latest
 
       - name: build and push notification
         uses: docker/build-push-action@v6
@@ -65,4 +66,4 @@ jobs:
           context: ./services/notification
           file: ./services/notification/Containerfile
           push: true
-          tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/podlab-notification-service:latest
+          tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/${{env.IMAGE_BASE_NAME}}-notification-service:latest
