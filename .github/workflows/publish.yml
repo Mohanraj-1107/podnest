@@ -15,6 +15,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ toLower(github.repository_owner) }}
 
 jobs:
   backend-image-build:
@@ -44,7 +45,7 @@ jobs:
           context: .
           file: ./Containerfile
           push: true
-          tags: ${{env.REGISTRY}}/${{ github.repository_owner }}/podlab-backend:latest
+          tags: ${{env.REGISTRY}}/${{IMAGE_PREFIX}}/podlab-backend:latest
 
       - name: build and push frontend
         uses: docker/build-push-action@v6
@@ -52,7 +53,7 @@ jobs:
          context: ./frontend
          file: ./frontend/Containerfile
          push: true
-         tags: ${{env.REGISTRY}}/${{ github.repository_owner }}/podlab-frontend:latest
+         tags: ${{env.REGISTRY}}/${{IMAGE_PREFIX}}/podlab-frontend:latest
 
       - name: build and push notification
         uses: docker/build-push-action@v6
@@ -60,4 +61,4 @@ jobs:
           context: ./services/notification
           file: ./services/notification/Containerfile
           push: true
-          tags: ${{env.REGISTRY}}/${{ github.repository_owner }}/podlab-notification-service:latest
+          tags: ${{env.REGISTRY}}/${{IMAGE_PREFIX}}/podlab-notification-service:latest
