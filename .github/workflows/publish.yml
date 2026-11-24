@@ -31,7 +31,7 @@ jobs:
       - name: login into GHCR
         uses: docker/login-action@v3
         with:
-          registry: ghrc.io
+          registry: ${{env.REGISTRY}}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -44,7 +44,7 @@ jobs:
           context: .
           file: ./Containerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/podlab-backend:latest
+          tags: ${{env.REGISTRY}}/${{ github.repository_owner }}/podlab-backend:latest
 
       - name: build and push frontend
         uses: docker/build-push-action@v6
@@ -52,7 +52,7 @@ jobs:
          context: ./frontend
          file: ./frontend/Containerfile
          push: true
-         tags: ghcr.io/${{ github.repository_owner }}/podlab-frontend:latest
+         tags: ${{env.REGISTRY}}/${{ github.repository_owner }}/podlab-frontend:latest
 
       - name: build and push notification
         uses: docker/build-push-action@v6
@@ -60,4 +60,4 @@ jobs:
           context: ./services/notification
           file: ./services/notification/Containerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/podlab-notification-service:latest
+          tags: ${{env.REGISTRY}}/${{ github.repository_owner }}/podlab-notification-service:latest
