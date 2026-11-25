@@ -67,3 +67,16 @@ Compose network, which shows how service discovery and network isolation work in
 | Notification service | Spring Boot (Java 17) | Separate microservice that stores and streams notifications |
 | Cache | Redis | Product caching, notes, and counters |
 | Persistence | MySQL | Relational data such as products, customers, and orders |
+
+## How to Run the podnest ? 
+
+You can run the application using Docker Compose or Podman Compose.
+
+1. Download the `podman-compose-prod.yaml` file.
+2. Install Podman and Podman Compose or Docker and Docker Compose.
+3. Open a terminal in the directory containing the YAML file.
+4. Run the following command:
+
+   ```bash
+   podman-compose -p podnest -f podman-compose-prod.yaml up -d
+5. Access the application at http://localhost:8090
