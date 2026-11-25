@@ -48,6 +48,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           file: ./Containerfile
           push: true
           tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/${{env.IMAGE_BASE_NAME}}-backend:latest
@@ -56,6 +57,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
          context: ./frontend
+         platforms: linux/amd64,linux/arm64
          file: ./frontend/Containerfile
          push: true
          tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/${{env.IMAGE_BASE_NAME}}-frontend:latest
@@ -64,6 +66,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./services/notification
+          platforms: linux/amd64,linux/arm64
           file: ./services/notification/Containerfile
           push: true
           tags: ${{env.REGISTRY}}/${{env.IMAGE_PREFIX}}/${{env.IMAGE_BASE_NAME}}-notification-service:latest
