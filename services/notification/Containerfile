@@ -9,9 +9,9 @@ COPY src ./src
 RUN mvn -B -ntp clean package
 
 
-FROM docker.io/library/eclipse-temurin:17-jre-alpine
+FROM docker.io/library/eclipse-temurin:17-jre
 
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN groupadd --system spring && useradd --system --gid spring spring
 
 WORKDIR /app
 
